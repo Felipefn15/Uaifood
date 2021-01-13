@@ -8,23 +8,25 @@ import {
     Stars,
     Informations,
     Price,
-    Type
+    Type,
+    NoResult
 } from './style.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserFriends, faStar } from '@fortawesome/free-solid-svg-icons';
 import api from '../../core/Api';
+import loading from '../../images/loading.gif';
 const List = ({ filter }) => {
     const [cityId] = useState(
         window.location.href.split('?')[1].replace('cityId=', '').split('&')[0]
     );
     const [restaurants, setRestaurants] = useState(undefined);
+    const [load, setLoad] = useState(false);
     console.log(filter);
     let options = [];
     useEffect(() => {
         setRestaurants(undefined);
-        console.log(filter?.restaurants);
+        setLoad(true);
         api.getRestaurants(cityId, filter?.restaurants).then((result) => {
-            console.log(result);
             filter.star?.map((content) => {
                 result.data.restaurants?.map((item) => {
                     if (
@@ -65,12 +67,12 @@ const List = ({ filter }) => {
                     });
                 }
             });
-            console.log(options);
             setRestaurants(
                 filter.star?.length > 0 || filter.value?.length > 0
                     ? options
                     : result.data.restaurants
             );
+            setLoad(false);
         });
     }, [cityId, filter]);
 
@@ -118,30 +120,37 @@ const List = ({ filter }) => {
     };
     return (
         <ListWrapper>
-            {restaurants !== undefined &&
-                restaurants.map((item, index) => {
-                    return (
-                        <Card key={index}>
-                            <Imagem>
-                                <img src={item.restaurant.thumb} alt="Restaurant Thumb" />
-                            </Imagem>
-                            <Name>{item.restaurant.name}</Name>
-                            <Locate>{item.restaurant.location.address}</Locate>
-                            {quantityStars(
-                                parseFloat(item.restaurant.user_rating.aggregate_rating)
-                            )}
-                            <Informations>
-                                <Price>
-                                    <FontAwesomeIcon className="icon" icon={faUserFriends} />
-                                    <p>{`${item.restaurant.currency}${item.restaurant.average_cost_for_two}`}</p>
-                                </Price>
-                                <Type>
-                                    <p>{item.restaurant.cuisines}</p>
-                                </Type>
-                            </Informations>
-                        </Card>
-                    );
-                })}
+            {!load ? (
+                restaurants !== undefined && restaurants[0]?.restaurant !== undefined ? (
+                    restaurants.map((item, index) => {
+                        return (
+                            <Card key={index}>
+                                <Imagem>
+                                    <img src={item.restaurant.thumb} alt="Restaurant Thumb" />
+                                </Imagem>
+                                <Name>{item.restaurant.name}</Name>
+                                <Locate>{item.restaurant.location.address}</Locate>
+                                {quantityStars(
+                                    parseFloat(item.restaurant.user_rating.aggregate_rating)
+                                )}
+                                <Informations>
+                                    <Price>
+                                        <FontAwesomeIcon className="icon" icon={faUserFriends} />
+                                        <p>{`${item.restaurant.currency}${item.restaurant.average_cost_for_two}`}</p>
+                                    </Price>
+                                    <Type>
+                                        <p>{item.restaurant.cuisines}</p>
+                                    </Type>
+                                </Informations>
+                            </Card>
+                        );
+                    })
+                ) : (
+                    <NoResult>Nenhum restaurante encontrado</NoResult>
+                )
+            ) : (
+                <img src={loading} alt="loading gif" />
+            )}
         </ListWrapper>
     );
 };

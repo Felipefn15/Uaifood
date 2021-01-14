@@ -83,3 +83,7 @@ export const Type = styled.div`
         margin: 0px;
     }
 `;
+
+export const NoResult = styled.h1`
+    font-family: 'Courier New', Courier, monospace;
+`;
